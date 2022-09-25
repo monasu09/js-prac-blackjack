@@ -256,7 +256,7 @@ function readUserInput(question) {
 }
 
 /* メイン関数 */
-async function main() {
+(async function () {
     /* デッキの作成 */
     let deck = new Deck();
     deck.createDeck();
@@ -301,6 +301,4 @@ async function main() {
             console.log("ディーラーの勝ち");
         }
     }
-}
-
-main();
+})();
