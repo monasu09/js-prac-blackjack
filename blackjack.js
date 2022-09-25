@@ -1,11 +1,18 @@
+/* 
+* カード1枚の情報を管理するクラス
+* カードのマークと数字(1~13)をセットで扱う
+*/
 class Card {
+    /* マークと数字を引数として受け取る */
     constructor(mark, no) {
         this.mark = mark;
         this.no = no;
     }
+    /* マーク(String)を取得する */
     getStrMark() {
         return this.mark;
     }
+    /* 数字(String)を取得する */
     getStrNo() {
         let no;
         switch (this.no) {
@@ -24,11 +31,14 @@ class Card {
         }
         return no;
     }
+    /* マーク+数字(String)を取得する */
     getStrName() {
         return this.mark + "の" + this.getStrNo();
     }
+    /* 点数計算に使用するカードの得点を取得する */
     getIntPoint() {
         let point;
+        /* J(10)、Q(12)、K(13)は10点として扱う。1~9は数字通りの点数。 */
         if ((this.no == 11) || (this.no == 12) || (this.no == 13)) {
             point = 10;
         }
@@ -39,7 +49,12 @@ class Card {
     }
 }
 
+/*
+* デッキの情報を管理するクラス
+* デッキ内のカードはすべてカードクラス
+*/
 class Deck {
+    /* デッキを作成する */
     createDeck() {
         this.deck = [];
         const mark = ["ダイヤ", "クラブ", "ハート", "スペード"];
@@ -56,20 +71,27 @@ class Deck {
             [this.deck[i], this.deck[j]] = [this.deck[j], this.deck[i]];
         }
     }
+    /* デッキからカードを1枚引く */
+    /* 引いたカードはデッキから消える */
     drawCard() {
         return this.deck.pop();
     }
 }
 
-
+/*
+* ユーザー、ディーラーのベースとなるプレイヤークラス
+*/
 class Player {
+    /* デッキクラスのインスタンスを引数として受け取る */
     constructor(deck){
         this.deck = deck;
         this.hand = [];
+        /* 最初の手札としてデッキからカードを2枚引く */
         for (let i = 0; i < 2; i++) {
             this.hand.push(this.deck.drawCard());
         }
     }
+    /* 手札の合計得点(Int)を取得する */
     getIntPoint() {
         let point = 0;
         for (let card of this.hand) {
@@ -77,6 +99,10 @@ class Player {
         }
         return point;
     }
+    /* 
+    * 手札の合計得点(String)を取得する
+    * 合計得点が21点を超えている場合は点数の後ろに「バースト」と表示する
+    */
     getStrPoint() {
         let point = this.getIntPoint();
         let str = String(point);
@@ -85,6 +111,7 @@ class Player {
         }
         return str;
     }
+    /* 手札の合計得点が21点を超えているか判定する */
     isBurst() {
         let point = this.getIntPoint();
         if (point > 21) {
@@ -96,12 +123,15 @@ class Player {
     }
 }
 
-
+/*
+* ユーザークラス
+*/
 class User extends Player {
     constructor (deck) {
         super(deck);
         this.name = "ユーザー";
     }
+    /* 手札と合計得点を表示する */
     printHand() {
         console.log("[" + this.name + "の手札]");
         for (let card of this.hand) {
@@ -111,6 +141,10 @@ class User extends Player {
         splitLine();
         return;
     }
+    /*
+    * ユーザーがデッキからカードを引く
+    * カードを引くかどうかをコンソールからの入力で決定する
+    */
     async drawCard() {
         let card = new Card();
         let isTurnEnd = new Boolean();
@@ -146,11 +180,18 @@ class User extends Player {
     }
 }
 
+/*
+* ディーラークラス
+*/
 class Dealer extends Player {
     constructor (deck) {
         super(deck);
         this.name = "ディーラー";
     }
+    /*
+    * ディーラーの手札を表示する
+    * 手札を1枚隠して表示するか、全ての手札+合計得点を表示するか選択できる
+    */
     printHand(isOpen) {
         let card = new Card();
         console.log("[" + this.name + "の手札]");
@@ -174,6 +215,10 @@ class Dealer extends Player {
         splitLine();
         return;
     }
+    /*
+    * ディーラーがデッキからカードを引く
+    * 手札の合計得点が17点以上になるまでカードを引き続ける
+    */
     drawCard() {
         this.printHand(true);
         let card = new Card();
@@ -193,6 +238,9 @@ function splitLine() {
     return;
 }
 
+/*
+* コンソールからの入力を受け取る関数
+*/
 function readUserInput(question) {
     process.stdin.setEncoding("utf8");
     const reader = require("readline").createInterface({
@@ -207,25 +255,33 @@ function readUserInput(question) {
     });
 }
 
+/* メイン関数 */
 async function main() {
+    /* デッキの作成 */
     let deck = new Deck();
     deck.createDeck();
 
+    /* ディーラーの手札を1枚隠して表示 */
     let dealer = new Dealer(deck);
     dealer.printHand(false);
 
+    /* ユーザーの手番処理 */
     let user = new User(deck);
     console.log("★ユーザーの手番★")
     splitLine();
     await user.drawCard();
 
+    /* ディーラーの手番処理 */
     console.log("★ディーラーの手番★");
     splitLine();
     dealer.drawCard();
 
+    /* ユーザー、ディーラーの手札の合計得点表示 */
     console.log("ユーザーの点数　：" + user.getStrPoint());
     console.log("ディーラーの点数：" + dealer.getStrPoint());
     splitLine();
+    
+    /* 勝敗判定 */
     isBurstUser = user.isBurst();
     isBurstDealer = dealer.isBurst();
     if (isBurstUser && isBurstDealer) {
